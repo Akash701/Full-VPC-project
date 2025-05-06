@@ -17,7 +17,7 @@ resource "aws_subnet" "public" {
   vpc_id = aws_vpc.main_vpc.id
   cidr_block = var.cidr_block
   map_public_ip_on_launch = true
-  availability_zone = "us-east-1"
+  availability_zone = var.aws_region
 
   tags = {
     Name = "public_subnet"
@@ -26,8 +26,8 @@ resource "aws_subnet" "public" {
 
 resource "aws_subnet" "private" {
   vpc_id = aws_vpc.main_vpc.id
-  cidr_block = "10.0.2.0/24"    // Create a seperarte variable for this one
-  availability_zone = "us-east-1"
+  cidr_block = var.cidr_block    // Create a seperarte variable for this one
+  availability_zone = var.aws_region
   
   tags = {
     Name = "private_subnet"
@@ -50,7 +50,7 @@ resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main_vpc.id
 
   route{
-    cidr_block = "0.0.0.0/0"
+    cidr_block = var.aws_route_table_cidr_block
     gateway_id = aws_internet_gateway.gw.id
   }
   tags={
@@ -62,8 +62,8 @@ resource "aws_route_table" "public" {
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main_vpc.id
 
-  route = {
-    cidr_block = "0.0.0.0/0"
+  route {
+    cidr_block = var.aws_route_table_cidr_block
     nat_gateway_id = aws_nat_gateway.nat_gateway.id
   }
   
@@ -74,13 +74,13 @@ tags = {
 }
 
 resource "aws_route_table_association" "public" {
-route_table_id = aws_subnet.public.id
-subnet_id = aws_subnet.public.id
+route_table_id = aws_route_table.public.id
+subnet_id = aws_subnet.public.id 
 
 }
 
 resource "aws_route_table_association" "private" {
-route_table_id = aws_subnet.private.id
+route_table_id = aws_route_table.public.id
 subnet_id = aws_subnet.private.id
 
 }

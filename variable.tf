@@ -10,3 +10,7 @@ variable "vpc_cidr" {
 variable "cidr_block" {
   default = "10.01.0/24"
 }
+
+variable "aws_route_table_cidr_block" {
+  default = "0.0.0.0/0"
+}
