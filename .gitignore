@@ -1,1 +1,8 @@
-VPC/.terraform
+# Terraform local state
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+crash.log
+*.tfstate.*
+*.tfvars
+.terraform.lock.hcl
