@@ -85,3 +85,96 @@ route_table_id = aws_route_table.public.id
 subnet_id = aws_subnet.private.id
 
 }
+
+resource "aws_security_group" "allow_ssh" {
+  name = "allow_ssh"
+  description = "Allow SSH inbound traffic"
+  vpc_id = aws_vpc.main_vpc.id
+
+  ingress{
+    description = "SSH from anywhere"
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress{
+    description = "Allow all outbound"
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow_ssh"
+  }
+}
+
+//EC2 instence
+
+resource "aws_instance" "ubuntu_server" {
+  ami = data.aws_ssm_parameter.ubuntu_ami.value
+ instance_type = "t2.micro"
+ subnet_id = aws_subnet.public.id
+ vpc_security_group_ids = [aws_security_group.allow_ssh.id]
+ key_name = "ec2_key"
+
+ tags={
+  Name = "TerraformUbuntuInstence"
+ }
+
+}
+
+resource "aws_s3_bucket" "s3_bucket" {
+  bucket = "my-second-bucket20251"
+  force_destroy = true 
+
+
+  tags = {
+    Name = "myuniquebucket"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "block_public_access" {
+  bucket = aws_s3_bucket.s3_bucket.id
+
+  block_public_acls = true
+  block_public_policy = true
+  ignore_public_acls = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_versioning" "s3_versioning" {
+  bucket = aws_s3_bucket.s3_bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+  
+}
+
+resource "aws_dynamodb_table" "terrform_dynamo" {
+  name = "terraform-dynamo"
+  billing_mode = "PAY_PER_REQUEST"
+  hash_key = "LockID"
+
+  attribute {
+    name = "LockID"
+    type = "S"
+  }
+  tags = {
+    Name = "terraform-lock-table"
+  
+  }
+}
+
+terraform {
+  backend "s3" {
+    bucket = "my-second-bucket20251"
+    key = "envs/dev/networking/vpc.tfstate"
+    region = "us-east-1"
+    dynamodb_table = "terraform-dynamo"
+    encrypt = true
+  }
+}
