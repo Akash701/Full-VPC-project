@@ -31,3 +31,4 @@ resource "aws_instance" "heavy_worker" {
     Name = "heavy-worker"
   }
 }
+# trigger re-run Sun 12 Apr 2026 07:18:40 PM CST
