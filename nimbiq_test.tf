@@ -19,3 +19,4 @@ resource "aws_instance" "app" {
   ami           = "ami-123"
   instance_type = "t2.2xlarge"
 }
+# nimbiq test trigger
