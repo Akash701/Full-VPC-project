@@ -20,3 +20,4 @@ resource "aws_instance" "app" {
   instance_type = "t2.2xlarge"
 }
 # nimbiq test trigger
+# trigger v2
