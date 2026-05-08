@@ -18,3 +18,4 @@ output "ami_used" {
     sensitive = true
 
 }
+#test
