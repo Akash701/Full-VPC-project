@@ -178,3 +178,17 @@ terraform {
     encrypt = true
   }
 }
+resource "aws_nat_gateway" "example" {
+  allocation_id = "eipalloc-test"
+  subnet_id     = "subnet-test"
+}
+
+resource "aws_instance" "example" {
+  ami           = "ami-test"
+  instance_type = "m6i.xlarge"
+}
+
+resource "aws_db_instance" "example" {
+  instance_class = "db.r5.2xlarge"
+  engine         = "mysql"
+}
