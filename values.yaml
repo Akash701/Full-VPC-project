@@ -1,0 +1,6 @@
+replicaCount: 8
+resources:
+  requests:
+    memory: "4Gi"
+persistence:
+  size: 200Gi
