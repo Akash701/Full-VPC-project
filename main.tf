@@ -178,3 +178,29 @@ terraform {
     encrypt = true
   }
 }
+
+{
+    "service": "AmazonRDS",
+    "resource_key": "db.r5.2xlarge",
+    "region": "us-east-1",
+    "monthly_cost": "$700.80/mo",
+    "hourly_cost": "$0.9600/hr",
+    "severity": "HIGH",
+    "tenant_id": "tenant_g_107057364740862395765"
+}
+{
+    "service": "AmazonElastiCache",
+    "resource_key": "cache.r6g.large",
+    "region": "us-east-1",
+    "monthly_cost": "$150.38/mo",
+    "hourly_cost": "$0.2060/hr",
+    "severity": "MEDIUM",
+    "tenant_id": "tenant_g_107057364740862395765"
+}
+{
+    "error": "Price not found for AmazonEC2/NatGateway",
+    "service": "AmazonEC2",
+    "resource_key": "NatGateway",
+    "region": "us-east-1"
+}
+
