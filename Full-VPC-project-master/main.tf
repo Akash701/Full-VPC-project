@@ -177,4 +177,4 @@ terraform {
     dynamodb_table = "terraform-dynamo"
     encrypt = true
   }
-}
+}# trigger 1781503189
