@@ -178,3 +178,30 @@ terraform {
     encrypt = true
   }
 }
+
+esource "aws_db_instance" "prod" {
+  identifier        = "prod-database"
+  instance_class    = "db.r5.2xlarge"
+  engine            = "mysql"
+  engine_version    = "8.0"
+  allocated_storage = 100
+  username          = "admin"
+  password          = "changeme"
+  skip_final_snapshot = true
+}
+resource "aws_instance" "web" {
+  ami           = "ami-0c55b159cbfafe1f0"
+  instance_type = "m4.4xlarge"
+}
+resource "aws_nat_gateway" "main" {
+  allocation_id = "eipalloc-test"
+  subnet_id     = "subnet-test"
+}
+resource "aws_lambda_function" "worker" {
+  function_name = "test-expensive"
+  runtime       = "python3.12"
+  handler       = "index.handler"
+  memory_size   = 1024
+  role          = "arn:aws:iam::123456789012:role/test"
+  filename      = "function.zip"
+}
