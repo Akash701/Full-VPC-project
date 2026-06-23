@@ -178,3 +178,121 @@ terraform {
     encrypt = true
   }
 }
+
+cat > infra/main.tf << 'EOF'
+# Production infrastructure — intentionally over-provisioned
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = "us-east-1"
+}
+
+# ISSUE 1: RDS — massively oversized
+# db.r5.2xlarge = $700.80/mo
+# Should be db.t3.medium = $25/mo
+resource "aws_db_instance" "production" {
+  identifier        = "prod-database"
+  engine            = "mysql"
+  engine_version    = "8.0"
+  instance_class    = "db.r5.2xlarge"
+  allocated_storage = 500
+  multi_az          = true
+  storage_type      = "io1"
+  iops              = 3000
+  db_name           = "appdb"
+  username          = "admin"
+  password          = "change-me-123"
+  skip_final_snapshot = false
+}
+
+# ISSUE 2: Three NAT Gateways
+# $32.85/mo each = $98.55/mo total
+# One is usually enough for non-prod
+resource "aws_nat_gateway" "az1" {
+  allocation_id = aws_eip.az1.id
+  subnet_id     = "subnet-abc123"
+  tags = { Name = "prod-nat-az1" }
+}
+
+resource "aws_nat_gateway" "az2" {
+  allocation_id = aws_eip.az2.id
+  subnet_id     = "subnet-def456"
+  tags = { Name = "prod-nat-az2" }
+}
+
+resource "aws_nat_gateway" "az3" {
+  allocation_id = aws_eip.az3.id
+  subnet_id     = "subnet-ghi789"
+  tags = { Name = "prod-nat-az3" }
+}
+
+resource "aws_eip" "az1" { domain = "vpc" }
+resource "aws_eip" "az2" { domain = "vpc" }
+resource "aws_eip" "az3" { domain = "vpc" }
+
+# ISSUE 3: ElastiCache — oversized node
+# cache.r6g.large = $150.38/mo
+# cache.t3.micro = $12/mo for most session stores
+resource "aws_elasticache_cluster" "sessions" {
+  cluster_id      = "session-cache"
+  engine          = "redis"
+  node_type       = "cache.r6g.large"
+  num_cache_nodes = 1
+  port            = 6379
+}
+
+# ISSUE 4: Lambda — 12x over-provisioned memory
+# 3008MB at 900s timeout
+# Most APIs need 256MB and 30s max
+resource "aws_lambda_function" "api" {
+  filename      = "api.zip"
+  function_name = "prod-api-handler"
+  role          = aws_iam_role.lambda.arn
+  handler       = "index.handler"
+  runtime       = "nodejs20.x"
+  memory_size   = 3008
+  timeout       = 900
+}
+
+resource "aws_iam_role" "lambda" {
+  name = "prod-api-lambda-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action    = "sts:AssumeRole"
+      Effect    = "Allow"
+      Principal = { Service = "lambda.amazonaws.com" }
+    }]
+  })
+}
+
+# ISSUE 5: S3 buckets with no lifecycle policy
+# Objects accumulate forever at $0.023/GB/month
+resource "aws_s3_bucket" "logs" {
+  bucket = "company-application-logs-prod"
+}
+
+resource "aws_s3_bucket" "backups" {
+  bucket = "company-database-backups-prod"
+}
+
+# ISSUE 6: CloudWatch log groups — no retention
+# Logs stored forever at $0.03/GB/month
+resource "aws_cloudwatch_log_group" "api" {
+  name = "/aws/lambda/prod-api-handler"
+  # retention_in_days not set
+}
+
+resource "aws_cloudwatch_log_group" "app" {
+  name = "/app/prod"
+  # retention_in_days not set
+}
+EOF
