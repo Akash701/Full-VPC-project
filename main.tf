@@ -178,3 +178,24 @@ terraform {
     encrypt = true
   }
 }
+
+resource "aws_db_instance" "prod" {
+  instance_class    = "db.r5.2xlarge"
+  engine            = "mysql"
+  allocated_storage = 100
+}
+
+resource "aws_elasticache_cluster" "cache" {
+  node_type       = "cache.r6g.large"
+  num_cache_nodes = 1
+}
+
+resource "aws_ebs_volume" "data" {
+  type = "gp2"
+  size = 100
+}
+
+resource "aws_nat_gateway" "main" {
+  allocation_id = "eipalloc-test"
+  subnet_id     = "subnet-test"
+}

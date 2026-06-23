@@ -1,0 +1,15 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-server
+spec:
+  replicas: 8
+  template:
+    spec:
+      containers:
+      - name: api
+        image: node:latest
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
