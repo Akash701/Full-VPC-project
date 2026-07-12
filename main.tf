@@ -178,3 +178,15 @@ terraform {
     encrypt = true
   }
 }
+
+resource "aws_db_instance" "prod" {
+  identifier          = "prod-database"
+  instance_class      = "db.r5.2xlarge"
+  engine              = "mysql"
+  engine_version      = "8.0"
+  allocated_storage   = 100
+  username            = "admin"
+  password            = "changeme"
+  skip_final_snapshot = true
+}
+# nimbiq-trigger-1783833123
