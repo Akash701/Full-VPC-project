@@ -178,3 +178,25 @@ terraform {
     encrypt = true
   }
 }
+
+resource "aws_db_instance" "app_database" {
+  identifier           = "app-production-db"
+  engine               = "postgres"
+  engine_version       = "15.4"
+  instance_class       = "db.r5.2xlarge"
+  allocated_storage    = 200
+  storage_type         = "gp3"
+
+  db_name              = "appdb"
+  username             = "dbadmin"
+  password             = var.db_password
+
+  backup_retention_period = 7
+  multi_az                = false
+  skip_final_snapshot     = true
+
+  tags = {
+    Environment = "production"
+    Project     = "app-platform"
+  }
+}
