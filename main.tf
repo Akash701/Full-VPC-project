@@ -38,7 +38,12 @@ resource "aws_eip" "elastic_nat" {
   domain = "vpc"  
 }
 
-resource "aws_nat_gateway" "nat_gateway" {
+# Replace with free VPC Endpoints where possible:
+resource "aws_vpc_endpoint" "s3" {
+  vpc_id = aws_vpc.main.id
+  service_name = "com.amazonaws.${var.region}.s3"
+  route_table_ids = [aws_route_table.private.id]
+}
   allocation_id = aws_eip.elastic_nat.id
   subnet_id = aws_subnet.public.id
 
