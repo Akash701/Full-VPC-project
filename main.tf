@@ -127,7 +127,13 @@ resource "aws_instance" "ubuntu_server" {
 
 }
 
-resource "aws_s3_bucket" "s3_bucket" {
+# Add after this resource block:
+resource "aws_s3_bucket_lifecycle_configuration" "s3_bucket_lifecycle" {
+  bucket = aws_s3_bucket.s3_bucket.id
+  rule { id = "nimbiq-auto-archive" status = "Enabled"
+    transition { days = 30  storage_class = "STANDARD_IA" }
+    transition { days = 90  storage_class = "GLACIER" } }
+}
   bucket = "my-second-bucket20251"
   force_destroy = true 
 
