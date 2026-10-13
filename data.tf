@@ -14,3 +14,9 @@ data "aws_ssm_parameter" "ubuntu_ami" {
 
 }
 
+
+resource "aws_db_instance" "e2e_test" {
+  identifier     = "nimbiq-e2e-test"
+  engine         = "postgres"
+  instance_class = "db.r5.2xlarge"
+}
