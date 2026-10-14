@@ -6,3 +6,14 @@ crash.log
 *.tfstate.*
 *.tfvars
 
+
+# Credentials and secrets (never commit)
+*auth.json
+*Recovery-Codes*
+*Recovery_Codes*
+.env
+.env.*
+*.pem
+
+# Archives
+*.zip
