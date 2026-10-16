@@ -178,3 +178,54 @@ terraform {
     encrypt = true
   }
 }
+
+# nimbiq-test.tf — deliberately wasteful infra to exercise Nimbiq's PR scanner.
+# Not meant to be applied; each block should trip one cost rule.
+
+resource "aws_db_instance" "analytics" {
+  identifier        = "nimbiq-test-db"
+  engine            = "postgres"
+  instance_class    = "db.r5.2xlarge"   # expect EXACT ~$700.80/mo
+  allocated_storage = 100
+}
+
+resource "aws_instance" "worker" {
+  ami           = "ami-0abcdef1234567890"
+  instance_type = "m5.2xlarge"          # large EC2 → rightsize / Spot flag
+}
+
+resource "aws_elasticache_cluster" "cache" {
+  cluster_id      = "nimbiq-test-cache"
+  engine          = "redis"
+  node_type       = "cache.r6g.xlarge"  # oversized node flag
+  num_cache_nodes = 1
+}
+
+resource "aws_nat_gateway" "main" {
+  allocation_id = "eipalloc-0abc123"
+  subnet_id     = "subnet-0abc123"       # NAT Gateway → ~$32.85/mo + transfer
+}
+
+resource "aws_ebs_volume" "data" {
+  availability_zone = "us-east-1a"
+  size              = 500
+  type              = "gp2"              # gp2 → gp3 is 20% cheaper
+}
+
+resource "aws_s3_bucket" "artifacts" {
+  bucket = "nimbiq-test-artifacts"       # no lifecycle rule → unbounded storage
+}
+
+resource "aws_cloudwatch_log_group" "app" {
+  name = "/nimbiq/test/app"              # no retention_in_days → infinite logs
+}
+
+resource "aws_lambda_function" "processor" {
+  function_name = "nimbiq-test-processor"
+  runtime       = "python3.12"
+  handler       = "index.handler"
+  timeout       = 900                    # 900s timeout → idle-wait billing flag
+  memory_size   = 3008
+  role          = "arn:aws:iam::490004641263:role/lambda-role"
+  filename      = "dummy.zip"
+}
